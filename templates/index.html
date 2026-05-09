@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>PHP Bill Detector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #080c14;
+      --surface:    #0e1420;
+      --surface2:   #141b28;
+      --border:     #1e2a3a;
+      --border2:    #263244;
+
+      --gold:       #c8992a;
+      --gold-light: #e8b94a;
+      --gold-dim:   #7a5a18;
+      --blue:       #3a7fd4;
+      --blue-light: #5a9ef4;
+      --blue-dim:   #1f4580;
+
+      --text:       #e8ecf0;
+      --text-muted: #7a8a9a;
+      --text-dim:   #4a5a6a;
+
+      --500-color:  #e0a030;
+      --1000-color: #4a8fe0;
+
+      --radius:  12px;
+      --radius-sm: 8px;
+      --shadow:  0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background texture ──────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 15% 10%, rgba(200,153,42,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 85% 80%, rgba(58,127,212,0.06) 0%, transparent 60%),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 39px,
+          rgba(255,255,255,0.012) 39px,
+          rgba(255,255,255,0.012) 40px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 39px,
+          rgba(255,255,255,0.012) 39px,
+          rgba(255,255,255,0.012) 40px
+        );
+      pointer-events: none;
+    }
+
+    .app-wrap {
+      position: relative; z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 16px 60px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 28px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .header-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(200,153,42,0.3);
+    }
+    .header-text h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(26px, 5vw, 38px);
+      letter-spacing: 2px;
+      line-height: 1;
+      background: linear-gradient(90deg, var(--gold-light), var(--text) 60%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(200,153,42,0.1);
+      border: 1px solid rgba(200,153,42,0.25);
+      color: var(--gold-light);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── Card base ───────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    /* ── Tabs ────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 16px;
+      border: none; background: transparent;
+      color: var(--text-muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 600;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .tab-btn svg { flex-shrink: 0; }
+
+    /* ── Tab panels ──────────────────────────────────────────────── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Upload zone ─────────────────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed var(--border2);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--gold);
+      background: rgba(200,153,42,0.04);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon {
+      width: 56px; height: 56px;
+      border: 2px solid var(--border2);
+      border-radius: 14px;
+      display: grid; place-items: center;
+      margin: 0 auto 16px;
+      font-size: 24px;
+      transition: border-color 0.2s;
+    }
+    .drop-zone:hover .drop-icon { border-color: var(--gold); }
+    .drop-zone h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 600;
+      color: var(--text); margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .drop-zone p { font-size: 13px; color: var(--text-muted); }
+    .drop-zone p span {
+      color: var(--gold); text-decoration: underline; text-underline-offset: 3px;
+    }
+
+    /* ── Preview image ───────────────────────────────────────────── */
+    .preview-wrap {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      display: none;
+      margin-top: 16px;
+    }
+    .preview-wrap.show { display: block; }
+    .preview-wrap img {
+      width: 100%; display: block;
+      max-height: 420px; object-fit: contain;
+    }
+    .preview-clear {
+      position: absolute; top: 10px; right: 10px;
+      width: 32px; height: 32px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+    .preview-clear:hover { color: #fff; }
+
+    /* ── Camera ──────────────────────────────────────────────────── */
+    .camera-wrap {
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #camera-video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .camera-placeholder {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 12px;
+      color: var(--text-dim);
+    }
+    .camera-placeholder svg { opacity: 0.4; }
+    .camera-placeholder p { font-size: 14px; }
+
+    #camera-snapshot {
+      width: 100%; border-radius: var(--radius);
+      display: none; margin-top: 16px;
+    }
+    #camera-snapshot.show { display: block; }
+
+    .camera-controls {
+      display: flex; gap: 10px; margin-top: 14px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 22px;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), #a07020);
+      color: #000;
+      box-shadow: 0 4px 16px rgba(200,153,42,0.25);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200,153,42,0.4);
+    }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--gold-dim);
+      color: var(--gold-light);
+    }
+    .btn-blue {
+      background: linear-gradient(135deg, var(--blue), #1f4590);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(58,127,212,0.25);
+    }
+    .btn-blue:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(58,127,212,0.4);
+    }
+
+    .detect-row {
+      display: flex; justify-content: flex-end; margin-top: 16px;
+    }
+    .detect-row .btn-primary { min-width: 160px; padding: 12px 28px; font-size: 15px; }
+
+    /* ── Loading state ───────────────────────────────────────────── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results section ─────────────────────────────────────────── */
+    #results-section {
+      display: none; margin-top: 28px;
+      animation: fadeUp 0.35s ease;
+    }
+    #results-section.show { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .results-header h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 1.5px;
+      color: var(--text);
+    }
+    .result-count-badge {
+      background: rgba(200,153,42,0.15);
+      border: 1px solid rgba(200,153,42,0.3);
+      color: var(--gold-light);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 99px;
+    }
+
+    /* ── Stats row ───────────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 500px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .stat-total { grid-column: 1 / -1; }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+    }
+    .stat-500::before  { background: var(--500-color); }
+    .stat-1000::before { background: var(--1000-color); }
+    .stat-total::before {
+      background: linear-gradient(180deg, var(--500-color), var(--1000-color));
+    }
+
+    .stat-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px; line-height: 1;
+      letter-spacing: 1px;
+    }
+    .stat-500  .stat-value { color: var(--500-color); }
+    .stat-1000 .stat-value { color: var(--1000-color); }
+    .stat-total .stat-value {
+      font-size: 28px;
+      background: linear-gradient(90deg, var(--500-color), var(--1000-color));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-sub {
+      font-size: 12px; color: var(--text-dim); margin-top: 2px;
+    }
+    .stat-total .stat-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+    /* ── Annotated image ─────────────────────────────────────────── */
+    .result-img-wrap {
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .result-img-wrap img {
+      width: 100%; display: block;
+      max-height: 500px; object-fit: contain;
+    }
+
+    /* ── Detection list ──────────────────────────────────────────── */
+    .det-list-header {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-dim);
+      display: grid;
+      grid-template-columns: 32px 1fr 100px 80px;
+      gap: 8px; padding: 0 12px 8px;
+    }
+    .det-list { display: flex; flex-direction: column; gap: 6px; }
+    .det-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 32px 1fr 100px 80px;
+      align-items: center;
+      gap: 8px;
+      animation: fadeUp 0.25s ease;
+    }
+    .det-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--text-dim);
+    }
+    .det-label {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .det-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .det-dot-500  { background: var(--500-color); box-shadow: 0 0 6px var(--500-color); }
+    .det-dot-1000 { background: var(--1000-color); box-shadow: 0 0 6px var(--1000-color); }
+    .det-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 15px; letter-spacing: 0.5px;
+    }
+    .det-name-500  { color: var(--500-color); }
+    .det-name-1000 { color: var(--1000-color); }
+
+    .conf-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .conf-bar-bg {
+      flex: 1; height: 4px;
+      background: var(--border2);
+      border-radius: 2px; overflow: hidden;
+    }
+    .conf-bar-fill {
+      height: 100%; border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    .conf-bar-fill-500  { background: var(--500-color); }
+    .conf-bar-fill-1000 { background: var(--1000-color); }
+    .conf-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--text-muted);
+      min-width: 38px; text-align: right;
+    }
+
+    .det-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; font-weight: 700;
+      text-align: right;
+    }
+    .det-value-500  { color: var(--500-color); }
+    .det-value-1000 { color: var(--1000-color); }
+
+    /* ── Empty / error states ────────────────────────────────────── */
+    .no-detect {
+      text-align: center; padding: 32px 16px;
+      color: var(--text-muted);
+    }
+    .no-detect .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+    .no-detect p { font-size: 14px; }
+
+    .error-banner {
+      background: rgba(220, 60, 60, 0.1);
+      border: 1px solid rgba(220, 60, 60, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      color: #f87171;
+      font-size: 13px;
+      display: none; margin-top: 12px;
+    }
+    .error-banner.show { display: block; }
+
+    /* ── Divider ──────────────────────────────────────────────────── */
+    .section-divider {
+      height: 1px; background: var(--border);
+      margin: 28px 0;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      font-size: 12px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+    footer span { color: var(--gold-dim); }
+
+    /* ── Scrollbar ───────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ── Responsive tweaks ───────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .card { padding: 16px; }
+      header { gap: 12px; }
+      .header-badge { display: none; }
+      .det-list-header,
+      .det-item { grid-template-columns: 28px 1fr 70px; }
+      .det-list-header > *:last-child,
+      .det-item > *:last-child { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-wrap">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <header>
+    <div class="header-icon">💵</div>
+    <div class="header-text">
+      <h1>PHP Bill Detector</h1>
+      <p>Old-series ₱500 &amp; ₱1,000 banknote recognition · YOLOv8m</p>
+    </div>
+    <div class="header-badge">YOLOv8m · ONNX</div>
+  </header>
+
+  <!-- ── Input Section ───────────────────────────────────── -->
+  <div class="card">
+
+    <!-- Tab selector -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-upload" onclick="switchTab('upload')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Image
+      </button>
+      <button class="tab-btn" id="tab-camera" onclick="switchTab('camera')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Camera Capture
+      </button>
+    </div>
+
+    <!-- ── UPLOAD PANEL ─── -->
+    <div class="tab-panel active" id="panel-upload">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept="image/*" />
+        <div class="drop-icon">📂</div>
+        <h3>Drop image here or click to browse</h3>
+        <p>Supports JPG, PNG, WEBP · <span>browse files</span></p>
+      </div>
+      <div class="preview-wrap" id="upload-preview">
+        <img id="upload-preview-img" src="" alt="Preview" />
+        <button class="preview-clear" onclick="clearUpload()" title="Remove">✕</button>
+      </div>
+      <div class="detect-row">
+        <button class="btn btn-primary" id="detect-upload-btn" onclick="detectUpload()" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Detect Bills
+        </button>
+      </div>
+    </div>
+
+    <!-- ── CAMERA PANEL ─── -->
+    <div class="tab-panel" id="panel-camera">
+      <div class="camera-wrap" id="camera-wrap">
+        <video id="camera-video" autoplay playsinline muted></video>
+        <div class="camera-placeholder" id="cam-placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <p>Camera not started</p>
+        </div>
+      </div>
+
+      <canvas id="cam-canvas" style="display:none"></canvas>
+      <img id="camera-snapshot" src="" alt="Snapshot" />
+
+      <div class="camera-controls">
+        <button class="btn btn-blue" id="start-cam-btn" onclick="startCamera()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start Camera
+        </button>
+        <button class="btn btn-secondary" id="capture-btn" onclick="captureFrame()" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          Capture
+        </button>
+        <button class="btn btn-primary" id="detect-camera-btn" onclick="detectCamera()" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Detect Bills
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /.card -->
+
+  <!-- Error banner -->
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- ── Results ──────────────────────────────────────────── -->
+  <div id="results-section">
+    <div class="section-divider"></div>
+
+    <div class="results-header">
+      <h2>Detection Results</h2>
+      <span class="result-count-badge" id="result-count-badge">0 bills</span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card stat-500">
+        <div class="stat-label">₱500 Bills</div>
+        <div class="stat-value" id="count-500">0</div>
+        <div class="stat-sub">bills detected</div>
+      </div>
+      <div class="stat-card stat-1000">
+        <div class="stat-label">₱1000 Bills</div>
+        <div class="stat-value" id="count-1000">0</div>
+        <div class="stat-sub">bills detected</div>
+      </div>
+      <div class="stat-card stat-total">
+        <div class="stat-label">Total Value</div>
+        <div class="stat-value" id="total-value">₱0</div>
+        <div class="stat-sub" id="total-breakdown">—</div>
+      </div>
+    </div>
+
+    <!-- Annotated image -->
+    <div class="result-img-wrap">
+      <img id="result-img" src="" alt="Annotated result" />
+    </div>
+
+    <!-- Detection list -->
+    <div class="det-list-header">
+      <div>#</div>
+      <div>Denomination</div>
+      <div>Confidence</div>
+      <div>Value</div>
+    </div>
+    <div class="det-list" id="det-list"></div>
+  </div>
+
+  <footer>
+    <p>Old-series Philippine Banknote Detector · <span>YOLOv8m · ONNX Runtime</span></p>
+  </footer>
+</div><!-- /.app-wrap -->
+
+<script>
+  /* ─── State ───────────────────────────────────────────── */
+  let uploadDataURL = null;
+  let cameraDataURL = null;
+  let cameraStream  = null;
+
+  /* ─── Tab switching ──────────────────────────────────── */
+  function switchTab(name) {
+    ['upload', 'camera'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+      document.getElementById(`panel-${t}`).classList.toggle('active', t === name);
+    });
+    hideError();
+  }
+
+  /* ─── Upload ─────────────────────────────────────────── */
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault(); dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) handleFile(f);
+  });
+
+  function handleFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      uploadDataURL = e.target.result;
+      document.getElementById('upload-preview-img').src = uploadDataURL;
+      document.getElementById('upload-preview').classList.add('show');
+      document.getElementById('detect-upload-btn').disabled = false;
+      hideResults();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearUpload() {
+    uploadDataURL = null;
+    fileInput.value = '';
+    document.getElementById('upload-preview').classList.remove('show');
+    document.getElementById('detect-upload-btn').disabled = true;
+    hideResults();
+  }
+
+  function detectUpload() {
+    if (uploadDataURL) sendDetect(uploadDataURL, 'detect-upload-btn');
+  }
+
+  /* ─── Camera ─────────────────────────────────────────── */
+  async function startCamera() {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      const video = document.getElementById('camera-video');
+      video.srcObject = cameraStream;
+      document.getElementById('cam-placeholder').style.display = 'none';
+      document.getElementById('capture-btn').disabled = false;
+      document.getElementById('start-cam-btn').textContent = '⏹ Stop';
+      document.getElementById('start-cam-btn').onclick = stopCamera;
+    } catch (err) {
+      showError('Camera access denied or unavailable: ' + err.message);
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    const video = document.getElementById('camera-video');
+    video.srcObject = null;
+    document.getElementById('cam-placeholder').style.display = 'flex';
+    document.getElementById('capture-btn').disabled = true;
+    document.getElementById('detect-camera-btn').disabled = true;
+    const btn = document.getElementById('start-cam-btn');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Camera`;
+    btn.onclick = startCamera;
+    cameraDataURL = null;
+  }
+
+  function captureFrame() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('cam-canvas');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    cameraDataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+    const snap = document.getElementById('camera-snapshot');
+    snap.src = cameraDataURL;
+    snap.classList.add('show');
+    document.getElementById('detect-camera-btn').disabled = false;
+    hideResults();
+  }
+
+  function detectCamera() {
+    if (cameraDataURL) sendDetect(cameraDataURL, 'detect-camera-btn');
+  }
+
+  /* ─── Inference ──────────────────────────────────────── */
+  async function sendDetect(dataURL, btnId) {
+    const btn = document.getElementById(btnId);
+    const origHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spinner"></div> Analyzing…`;
+    hideError();
+
+    try {
+      const res = await fetch('/detect', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ image: dataURL }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      renderResults(data);
+    } catch (err) {
+      showError('Detection failed: ' + err.message);
+    } finally {
+      btn.innerHTML = origHTML;
+      btn.disabled  = false;
+    }
+  }
+
+  /* ─── Render results ─────────────────────────────────── */
+  function renderResults(data) {
+    const { detections, counts, total, annotated_image } = data;
+    const totalBills = (counts['500'] || 0) + (counts['1000'] || 0);
+
+    // Badge
+    document.getElementById('result-count-badge').textContent =
+      `${totalBills} bill${totalBills !== 1 ? 's' : ''} found`;
+
+    // Stats
+    document.getElementById('count-500').textContent  = counts['500']  || 0;
+    document.getElementById('count-1000').textContent = counts['1000'] || 0;
+
+    const totalVal = document.getElementById('total-value');
+    totalVal.textContent = `₱${total.toLocaleString()}`;
+
+    const parts = [];
+    if (counts['500'])  parts.push(`${counts['500']}×₱500`);
+    if (counts['1000']) parts.push(`${counts['1000']}×₱1000`);
+    document.getElementById('total-breakdown').textContent = parts.join(' + ') || '—';
+
+    // Annotated image
+    document.getElementById('result-img').src = annotated_image;
+
+    // Detection list
+    const list = document.getElementById('det-list');
+    list.innerHTML = '';
+
+    if (detections.length === 0) {
+      list.innerHTML = `
+        <div class="no-detect">
+          <div class="icon">🔍</div>
+          <p>No bills detected. Try a clearer image or adjust lighting.</p>
+        </div>`;
+    } else {
+      detections.forEach((det, i) => {
+        const pct = Math.round(det.confidence * 100);
+        const cls = det.class;
+        const el  = document.createElement('div');
+        el.className = 'det-item';
+        el.style.animationDelay = `${i * 0.06}s`;
+        el.innerHTML = `
+          <div class="det-num">${String(i + 1).padStart(2, '0')}</div>
+          <div class="det-label">
+            <div class="det-dot det-dot-${cls}"></div>
+            <span class="det-name det-name-${cls}">₱${cls}</span>
+          </div>
+          <div class="conf-bar-wrap">
+            <div class="conf-bar-bg">
+              <div class="conf-bar-fill conf-bar-fill-${cls}" style="width:${pct}%"></div>
+            </div>
+            <span class="conf-pct">${pct}%</span>
+          </div>
+          <div class="det-value det-value-${cls}">₱${parseInt(cls).toLocaleString()}</div>
+        `;
+        list.appendChild(el);
+      });
+    }
+
+    // Show section
+    document.getElementById('results-section').classList.add('show');
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ─── Helpers ────────────────────────────────────────── */
+  function hideResults() {
+    document.getElementById('results-section').classList.remove('show');
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-banner');
+    el.textContent = '⚠  ' + msg;
+    el.classList.add('show');
+  }
+
+  function hideError() {
+    document.getElementById('error-banner').classList.remove('show');
+  }
+</script>
+</body>
+</html>

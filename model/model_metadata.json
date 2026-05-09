@@ -1,0 +1,27 @@
+{
+  "model_name": "YOLOv8m \u2014 PHP Bill Detector",
+  "architecture": "YOLOv8 small",
+  "classes": [
+    "1000",
+    "500"
+  ],
+  "num_classes": 2,
+  "input_size": 640,
+  "confidence_threshold": 0.15,
+  "iou_threshold": 0.5,
+  "training": {
+    "epochs": 120,
+    "batch_size": 16,
+    "lr": 0.001,
+    "amp": true,
+    "cos_lr": true
+  },
+  "preprocessing": {
+    "auto_orient": true,
+    "contrast": "percentile stretch p2\u2013p98 (before padding)",
+    "clahe": "clipLimit=2.0, tileGridSize=8x8",
+    "sharpen": "unsharp mask sigma=1.5, weight=1.4",
+    "resize": "640x640 fit-within with black padding"
+  },
+  "checkpoint_file": "yolov8m_php_bills.pt"
+}
