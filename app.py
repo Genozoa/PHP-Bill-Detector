@@ -30,24 +30,33 @@ def detect():
         return jsonify({"error": "No image provided"}), 400
 
     try:
+        print(f"Processing detection request - image size: {len(payload['image'])} chars")
         raw_b64 = payload["image"].split(",")[-1]
         img_bytes = base64.b64decode(raw_b64)
         pil_img   = Image.open(io.BytesIO(img_bytes))
+        print(f"Image loaded: {pil_img.size}")
 
         # Get dynamic thresholds from client (or use defaults)
         conf_threshold = float(payload.get("confidence", 0.15))
         iou_threshold = float(payload.get("iou", 0.5))
+        print(f"Using thresholds: conf={conf_threshold}, iou={iou_threshold}")
 
         tensor, params, original_rgb = preprocess(pil_img)
+        print(f"Preprocessing done: tensor shape {tensor.shape}")
+
         detections = run_inference(tensor, params, conf_threshold, iou_threshold)
+        print(f"Inference done: {len(detections)} detections")
+
         annotated = annotate_image(original_rgb, detections)
         ann_b64 = img_to_base64_jpeg(annotated)
+        print(f"Annotation done: annotated image size {len(ann_b64)} bytes")
 
         counts = {c.split('_')[1]: 0 for c in CLASSES}
         for d in detections:
             counts[d["class"].split('_')[1]] += 1
 
         total = sum(int(c) * n for c, n in counts.items())
+        print(f"Counts: {counts}, Total: {total}")
 
         return jsonify({
             "detections":      detections,

@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import os
+import threading
 
 import cv2
 import numpy as np
@@ -33,11 +34,22 @@ CLASS_COLORS_BGR = {
     "old_1000": (220, 120,  40),   # blue        (BGR)
 }
 
-# ─── Load ONNX Model ───────────────────────────────────────────────────────────
-_providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-session    = ort.InferenceSession(ONNX_PATH, providers=_providers)
-INPUT_NAME = session.get_inputs()[0].name
-print(f"Model loaded — input: {INPUT_NAME}  |  providers: {session.get_providers()}")
+# ─── Thread-Local ONNX Session ─────────────────────────────────────────────────
+_thread_local = threading.local()
+
+def get_session():
+    """Get thread-local ONNX session to avoid thread-safety issues."""
+    if not hasattr(_thread_local, 'session'):
+        try:
+            _providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+            _thread_local.session = ort.InferenceSession(ONNX_PATH, providers=_providers)
+            print(f"Model loaded in thread {threading.current_thread().name} — providers: {_thread_local.session.get_providers()}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load ONNX model: {e}")
+    return _thread_local.session
+
+# Get input name from a session instance
+INPUT_NAME = ort.InferenceSession(ONNX_PATH, providers=["CPUExecutionProvider"]).get_inputs()[0].name
 
 
 # ─── Preprocessing ─────────────────────────────────────────────────────────────
@@ -149,7 +161,7 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
     conf_threshold = conf_thresh if conf_thresh is not None else CONF_THRESH
     iou_threshold = iou_thresh if iou_thresh is not None else IOU_THRESH
 
-    raw   = session.run(None, {INPUT_NAME: tensor})[0]  # (1, 6, 8400)
+    raw   = get_session().run(None, {INPUT_NAME: tensor})[0]  # (1, 6, 8400)
     preds = raw[0].T                                     # (8400, 6)
 
     class_scores = preds[:, 4:]                          # (8400, num_classes)
