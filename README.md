@@ -11,23 +11,23 @@ using a YOLOv8m ONNX model with real-time camera support and drag-and-drop image
 ```
 php_bill_detector/
 ├── app.py
+├── pipeline.py
 ├── requirements.txt
 ├── model/
-│   ├── yolov8m_php_bills.onnx      ← place your model here
-│   └── model_metadata.json         ← place the metadata here
+│   ├── yolov8m_php_bills.onnx
+│   └── model_metadata.json
+└── static/
+    └── styles.css
 └── templates/
     └── index.html
 ```
 
-### 2. Place model files
-Copy **`yolov8m_php_bills.onnx`** and **`model_metadata.json`** into the `model/` directory.
-
-### 3. Install dependencies
+### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the app
+### 3. Run the app
 ```bash
 python app.py
 ```
@@ -39,13 +39,12 @@ Then open **http://localhost:5000** in your browser.
 ## Features
 
 | Feature | Description |
-|---|---|
-| 📁 Image Upload | Drag-and-drop or click-to-browse (JPG / PNG / WEBP) |
-| 📷 Camera Capture | Live camera preview with single-frame capture |
-| 🔍 Auto Detection | YOLOv8m detects ₱500 and ₱1000 bills in the image |
-| 💰 Bill Counting | Automatic per-denomination count and total peso value |
-| 🖼 Annotated View | Returns image with bounding boxes and confidence labels |
-| 📱 Responsive UI | Works on desktop and mobile browsers |
+| Image Upload | Drag-and-drop or click-to-browse (JPG / PNG / WEBP) |
+| Camera Capture | Live camera preview with single-frame capture |
+| Auto Detection | YOLOv8m detects ₱500 and ₱1000 bills in the image |
+| Bill Counting | Automatic per-denomination count and total peso value |
+| Annotated View | Returns image with bounding boxes and confidence labels |
+| Responsive UI | Works on desktop and mobile browsers |
 
 ---
 
@@ -53,11 +52,11 @@ Then open **http://localhost:5000** in your browser.
 
 Matches the training pipeline exactly:
 
-1. **Auto-orient** — strips EXIF rotation tag
-2. **Contrast stretch** — per-channel p2–p98 percentile normalization
-3. **CLAHE** — adaptive histogram equalization (LAB color space)
-4. **Sharpen** — unsharp mask (σ=1.5, weight=1.4)
-5. **Fit-within resize** — scale to 640×640 with black padding (preserves aspect ratio)
+1. Auto-orient — strips EXIF rotation tag
+2. Contrast stretch — per-channel p2–p98 percentile normalization
+3. CLAHE — adaptive histogram equalization (LAB color space)
+4. Sharpen — unsharp mask (σ=1.5, weight=1.4)
+5. Fit-within resize — scale to 640×640 with black padding (preserves aspect ratio)
 
 ---
 

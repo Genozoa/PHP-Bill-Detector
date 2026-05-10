@@ -1,9 +1,9 @@
 {
   "model_name": "YOLOv8m \u2014 PHP Bill Detector",
-  "architecture": "YOLOv8 small",
+  "architecture": "YOLOv8 medium",
   "classes": [
-    "1000",
-    "500"
+    "old_1000",
+    "old_500"
   ],
   "num_classes": 2,
   "input_size": 640,
