@@ -13,6 +13,9 @@ php_bill_detector/
 ├── app.py
 ├── pipeline.py
 ├── requirements.txt
+├── render.yaml
+├── Procfile
+├── .gitignore
 ├── model/
 │   ├── yolov8m_php_bills.onnx
 │   └── model_metadata.json

@@ -28,10 +28,9 @@ INPUT_SIZE   = int(META["input_size"])              # 640
 BILL_VALUES = {c: int(c.split('_')[1]) for c in CLASSES}         # {"old_1000": 1000, "old_500": 500}
 
 # Per-class BGR colors for OpenCV annotation
-# ₱500 → warm gold,  ₱1000 → sky blue
 CLASS_COLORS_BGR = {
-    "old_500":  (30,  180, 220),   # gold/amber  (BGR)
-    "old_1000": (220, 120,  40),   # blue        (BGR)
+    "old_500":  (30,  180, 220),
+    "old_1000": (220, 120,  40),
 }
 
 # ─── ONNX Session + Run Lock ─────────────────────────────────────────────────
