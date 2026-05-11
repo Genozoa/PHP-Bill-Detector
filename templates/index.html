@@ -324,7 +324,13 @@
           iou: modelSettings.iou
         }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text || '{}');
+      } catch (jsonError) {
+        throw new Error(text || `HTTP ${res.status}`);
+      }
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       renderResults(data);
     } catch (err) {

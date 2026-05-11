@@ -493,7 +493,15 @@ header {
 }
 
 .camera-controls {
-  display: flex; gap: 10px; margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.camera-controls .btn {
+  flex: 1 1 min(160px, 48%);
+  min-width: 140px;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────── */
@@ -512,7 +520,8 @@ header {
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.23, 1, 0.320, 1);
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.2;
   position: relative;
   overflow: hidden;
 }
@@ -522,6 +531,10 @@ header {
 }
 .btn:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.btn .spinner {
+  display: inline-block;
 }
 
 .btn-primary {
@@ -835,6 +848,20 @@ footer span { color: var(--gold-dim); }
   .settings-panel {
     width: 100%;
     right: -100%;
+  }
+  .camera-controls {
+    gap: 10px;
+  }
+  .camera-controls .btn {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .detect-row {
+    justify-content: stretch;
+  }
+  .detect-row .btn-primary {
+    width: 100%;
+    min-width: 0;
   }
 }
 

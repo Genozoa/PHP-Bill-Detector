@@ -34,22 +34,23 @@ CLASS_COLORS_BGR = {
     "old_1000": (220, 120,  40),   # blue        (BGR)
 }
 
-# ─── Thread-Local ONNX Session ─────────────────────────────────────────────────
-_thread_local = threading.local()
+# ─── ONNX Session + Run Lock ─────────────────────────────────────────────────
+_session_lock = threading.Lock()
+_run_lock = threading.Lock()
+_global_session = None
 
 def get_session():
-    """Get thread-local ONNX session to avoid thread-safety issues."""
-    if not hasattr(_thread_local, 'session'):
-        try:
-            _providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-            _thread_local.session = ort.InferenceSession(ONNX_PATH, providers=_providers)
-            print(f"Model loaded in thread {threading.current_thread().name} — providers: {_thread_local.session.get_providers()}")
-        except Exception as e:
-            raise RuntimeError(f"Failed to load ONNX model: {e}")
-    return _thread_local.session
-
-# Get input name from a session instance
-INPUT_NAME = ort.InferenceSession(ONNX_PATH, providers=["CPUExecutionProvider"]).get_inputs()[0].name
+    """Get a shared ONNX session and avoid race conditions during initialization."""
+    global _global_session
+    if _global_session is None:
+        with _session_lock:
+            if _global_session is None:
+                try:
+                    _global_session = ort.InferenceSession(ONNX_PATH, providers=["CPUExecutionProvider"])
+                    print(f"Model loaded in process {threading.current_thread().name} — providers: {_global_session.get_providers()}")
+                except Exception as e:
+                    raise RuntimeError(f"Failed to load ONNX model: {e}")
+    return _global_session
 
 
 # ─── Preprocessing ─────────────────────────────────────────────────────────────
@@ -161,7 +162,10 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
     conf_threshold = conf_thresh if conf_thresh is not None else CONF_THRESH
     iou_threshold = iou_thresh if iou_thresh is not None else IOU_THRESH
 
-    raw   = get_session().run(None, {INPUT_NAME: tensor})[0]  # (1, 6, 8400)
+    session = get_session()
+    input_name = session.get_inputs()[0].name
+    with _run_lock:
+        raw = session.run(None, {input_name: tensor})[0]  # (1, 6, 8400)
     preds = raw[0].T                                     # (8400, 6)
 
     class_scores = preds[:, 4:]                          # (8400, num_classes)
