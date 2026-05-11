@@ -65,6 +65,9 @@ def detect():
             "annotated_image": f"data:image/jpeg;base64,{ann_b64}",
         })
 
+    except MemoryError:
+        print("MemoryError during processing")
+        return jsonify({"error": "Insufficient memory for processing. Try a smaller image."}), 500
     except Exception as exc:
         import traceback
         traceback.print_exc()
