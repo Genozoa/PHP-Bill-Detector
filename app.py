@@ -8,11 +8,9 @@ from pipeline import CLASSES, BILL_VALUES, preprocess, run_inference, annotate_i
 #Flask App
 app = Flask(__name__)
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 @app.route("/detect", methods=["POST"])
 def detect():
@@ -72,7 +70,6 @@ def detect():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(exc)}), 500
-
 
 if __name__ == "__main__":
     import os

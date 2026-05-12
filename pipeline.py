@@ -9,13 +9,13 @@ import numpy as np
 import onnxruntime as ort
 from PIL import Image, ImageOps
 
-# ─── Paths ─────────────────────────────────────────────────────────────────────
+# Paths
 BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "model")
 ONNX_PATH = os.path.join(MODEL_DIR, "yolov8m_php_bills.onnx")
 META_PATH = os.path.join(MODEL_DIR, "model_metadata.json")
 
-# ─── Load Metadata ─────────────────────────────────────────────────────────────
+# Load Metadata
 with open(META_PATH) as f:
     META = json.load(f)
 
@@ -33,7 +33,7 @@ CLASS_COLORS_BGR = {
     "old_1000": (220, 120,  40),
 }
 
-# ─── ONNX Session + Run Lock ─────────────────────────────────────────────────
+# ONNX Session + Run Lock for thread-safe lazy initialization and inference
 _session_lock = threading.Lock()
 _run_lock = threading.Lock()
 _global_session = None
@@ -52,7 +52,7 @@ def get_session():
     return _global_session
 
 
-# ─── Preprocessing ─────────────────────────────────────────────────────────────
+# Preprocessing
 
 def _contrast_stretch(arr: np.ndarray, lo: float = 2.0, hi: float = 98.0) -> np.ndarray:
     """Per-channel percentile contrast stretch."""
@@ -76,7 +76,7 @@ def _apply_clahe(arr: np.ndarray) -> np.ndarray:
 
 
 def _sharpen(arr: np.ndarray) -> np.ndarray:
-    """Mild unsharp mask — enhances fine print and serial numbers."""
+    """Mild unsharp mask - enhances fine print and serial numbers."""
     blur = cv2.GaussianBlur(arr, (0, 0), sigmaX=1.5)
     return cv2.addWeighted(arr, 1.4, blur, -0.4, 0)
 
@@ -87,9 +87,9 @@ def preprocess(pil_img: Image.Image):
       Auto-Orient → Contrast Stretch → CLAHE → Sharpen → Fit-Within 640X640
 
     Returns:
-        tensor        (1, 3, 640, 640) float32 — model input
-        params        dict — transform params for mapping boxes back
-        original_rgb  np.ndarray — unmodified RGB image for annotation
+        tensor        (1, 3, 640, 640) float32 - model input
+        params        dict - transform params for mapping boxes back
+        original_rgb  np.ndarray - unmodified RGB image for annotation
     """
     pil_img      = ImageOps.exif_transpose(pil_img).convert("RGB")
     original_rgb = np.array(pil_img)
@@ -118,7 +118,7 @@ def preprocess(pil_img: Image.Image):
     return tensor, params, original_rgb
 
 
-# ─── NMS ───────────────────────────────────────────────────────────────────────
+# NMS 
 
 def _nms(boxes: np.ndarray, scores: np.ndarray, iou_threshold: float) -> list:
     """Standard greedy NMS. boxes: (N, 4) x1y1x2y2; scores: (N,)."""
@@ -144,7 +144,7 @@ def _nms(boxes: np.ndarray, scores: np.ndarray, iou_threshold: float) -> list:
     return keep
 
 
-# ─── Inference ─────────────────────────────────────────────────────────────────
+# Inference
 
 def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, iou_thresh: float = None) -> list:
     """
@@ -213,7 +213,7 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
     return detections
 
 
-# ─── Annotation ────────────────────────────────────────────────────────────────
+# Annotation
 
 def annotate_image(rgb: np.ndarray, detections: list) -> np.ndarray:
     """Draw bounding boxes + labels onto the RGB image. Returns annotated RGB."""

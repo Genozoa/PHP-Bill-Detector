@@ -54,7 +54,7 @@
 
 <div class="app-wrap">
 
-  <!-- ── Header ──────────────────────────────────────────── -->
+  <!-- Header -->
   <header>
     <div class="header-icon">💵</div>
     <div class="header-text">
@@ -64,7 +64,7 @@
     <div class="header-badge">YOLOv8m · ONNX</div>
   </header>
 
-  <!-- ── Input Section ───────────────────────────────────── -->
+  <!-- Input Section  -->
   <div class="card">
 
     <!-- Tab selector -->
@@ -79,7 +79,7 @@
       </button>
     </div>
 
-    <!-- ── UPLOAD PANEL ─── -->
+    <!-- UPLOAD PANEL -->
     <div class="tab-panel active" id="panel-upload">
       <div class="drop-zone" id="drop-zone">
         <input type="file" id="file-input" accept="image/*" />
@@ -99,7 +99,7 @@
       </div>
     </div>
 
-    <!-- ── CAMERA PANEL ─── -->
+    <!-- CAMERA PANEL -->
     <div class="tab-panel" id="panel-camera">
       <div class="camera-wrap" id="camera-wrap">
         <video id="camera-video" autoplay playsinline muted></video>
@@ -136,7 +136,7 @@
   <!-- Error banner -->
   <div class="error-banner" id="error-banner"></div>
 
-  <!-- ── Results ──────────────────────────────────────────── -->
+  <!-- Results -->
   <div id="results-section">
     <div class="section-divider"></div>
 
@@ -185,13 +185,13 @@
 </div><!-- /.app-wrap -->
 
 <script>
-  /* ─── State ───────────────────────────────────────────── */
+  /* State */
   let uploadDataURL = null;
   let cameraDataURL = null;
   let cameraStream  = null;
   let modelSettings = { confidence: 0.15, iou: 0.5 };
 
-  /* ─── Tab switching ──────────────────────────────────── */
+  /* Tab switching */
   function switchTab(name) {
     ['upload', 'camera'].forEach(t => {
       document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
@@ -200,7 +200,7 @@
     hideError();
   }
 
-  /* ─── Upload ─────────────────────────────────────────── */
+  /* Upload */
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
 
@@ -242,7 +242,7 @@
     if (uploadDataURL) sendDetect(uploadDataURL, 'detect-upload-btn');
   }
 
-  /* ─── Camera ─────────────────────────────────────────── */
+  /* Camera */
   async function startCamera() {
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
@@ -306,7 +306,7 @@
     if (cameraDataURL) sendDetect(cameraDataURL, 'detect-camera-btn');
   }
 
-  /* ─── Inference ──────────────────────────────────────── */
+  /* Inference */
   async function sendDetect(dataURL, btnId) {
     const btn = document.getElementById(btnId);
     const origHTML = btn.innerHTML;
@@ -341,7 +341,7 @@
     }
   }
 
-  /* ─── Model settings ─────────────────────────────────── */
+  /* Model settings */
   function toggleSettings() {
     const panel = document.getElementById('settings-panel');
     panel.classList.toggle('open');
@@ -374,7 +374,7 @@
     document.getElementById('iou-value').textContent = '0.50';
   }
 
-  /* ─── Render results ─────────────────────────────────── */
+  /* Render results */
   function renderResults(data) {
     const { detections, counts, total, annotated_image } = data;
     const totalBills = (counts['500'] || 0) + (counts['1000'] || 0);
@@ -439,7 +439,7 @@
     document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  /* ─── Helpers ────────────────────────────────────────── */
+  /* Helpers */
   function hideResults() {
     document.getElementById('results-section').classList.remove('show');
   }

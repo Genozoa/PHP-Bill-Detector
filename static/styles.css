@@ -1,4 +1,4 @@
-/* ── Reset & Base ─────────────────────────────────────────────── */
+/* Reset & Base */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -36,7 +36,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ── Background texture ──────────────────────────────────────── */
+/* Background texture */
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0;
@@ -67,7 +67,7 @@ body::before {
   padding: 0 16px 60px;
 }
 
-/* ── Settings Panel ──────────────────────────────────────────── */
+/* Settings Panel */
 .settings-toggle {
   position: fixed;
   bottom: 28px;
@@ -261,7 +261,7 @@ body::before {
   font-style: italic;
 }
 
-/* ── Header ──────────────────────────────────────────────────── */
+/* Header */
 header {
   display: flex;
   align-items: center;
@@ -308,7 +308,7 @@ header {
   white-space: nowrap;
 }
 
-/* ── Card base ───────────────────────────────────────────────── */
+/* Card base */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -316,7 +316,7 @@ header {
   padding: 24px;
 }
 
-/* ── Tabs ────────────────────────────────────────────────────── */
+/* Tabs */
 .tabs {
   display: flex;
   background: var(--surface2);
@@ -351,11 +351,11 @@ header {
 }
 .tab-btn svg { flex-shrink: 0; }
 
-/* ── Tab panels ──────────────────────────────────────────────── */
+/* Tab panels */
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* ── Upload zone ─────────────────────────────────────────────── */
+/* Upload zone */
 .drop-zone {
   border: 2px dashed var(--border2);
   border-radius: var(--radius);
@@ -394,7 +394,7 @@ header {
   color: var(--gold); text-decoration: underline; text-underline-offset: 3px;
 }
 
-/* ── Preview image ───────────────────────────────────────────── */
+/* Preview image */
 .preview-wrap {
   position: relative;
   border-radius: var(--radius);
@@ -422,7 +422,7 @@ header {
 }
 .preview-clear:hover { color: #fff; }
 
-/* ── Camera ──────────────────────────────────────────────────── */
+/* Camera */
 .camera-wrap {
   background: #000;
   border-radius: var(--radius);
@@ -504,7 +504,7 @@ header {
   min-width: 140px;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -570,7 +570,7 @@ header {
 }
 .detect-row .btn-primary { min-width: 160px; padding: 12px 28px; font-size: 15px; }
 
-/* ── Loading state ───────────────────────────────────────────── */
+/* Loading state */
 .spinner {
   width: 18px;
   height: 18px;
@@ -593,7 +593,7 @@ header {
   to { opacity: 0; transform: translateX(10px); }
 }
 
-/* ── Results section ─────────────────────────────────────────── */
+/* Results section */
 #results-section {
   display: none; margin-top: 28px;
   animation: fadeUp 0.35s ease;
@@ -623,7 +623,7 @@ header {
   border-radius: 99px;
 }
 
-/* ── Stats row ───────────────────────────────────────────────── */
+/* Stats row */
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -708,7 +708,7 @@ header {
   color: var(--text-dim);
 }
 
-/* ── Annotated image ─────────────────────────────────────────── */
+/* Annotated image */
 .result-img-wrap {
   border-radius: var(--radius);
   overflow: hidden;
@@ -721,7 +721,7 @@ header {
   max-height: 500px; object-fit: contain;
 }
 
-/* ── Detection list ──────────────────────────────────────────── */
+/* Detection list */
 .det-list-header {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 11px; font-weight: 700;
@@ -789,7 +789,7 @@ header {
 .det-value-500  { color: var(--500-color); }
 .det-value-1000 { color: var(--1000-color); }
 
-/* ── Empty / error states ────────────────────────────────────── */
+/* Empty / error states */
 .no-detect {
   text-align: center; padding: 32px 16px;
   color: var(--text-muted);
@@ -808,13 +808,13 @@ header {
 }
 .error-banner.show { display: block; }
 
-/* ── Divider ──────────────────────────────────────────────────── */
+/* Divider */
 .section-divider {
   height: 1px; background: var(--border);
   margin: 28px 0;
 }
 
-/* ── Footer ──────────────────────────────────────────────────── */
+/* Footer */
 footer {
   text-align: center;
   padding: 20px 0;
@@ -825,12 +825,12 @@ footer {
 }
 footer span { color: var(--gold-dim); }
 
-/* ── Scrollbar ───────────────────────────────────────────────── */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-/* ── Responsive tweaks ───────────────────────────────────────── */
+/* Responsive tweaks */
 @media (max-width: 480px) {
   .card { padding: 16px; }
   header { gap: 12px; }
@@ -865,7 +865,7 @@ footer span { color: var(--gold-dim); }
   }
 }
 
-/* ── Mobile settings panel improvements ──────────────────── */
+/* Mobile settings panel improvements */
 @media (max-width: 600px) {
   .settings-panel {
     width: 85vw;
@@ -873,7 +873,7 @@ footer span { color: var(--gold-dim); }
   }
 }
 
-/* ── Scrollbar custom ────────────────────────────────────── */
+/* Scrollbar custom */
 .settings-panel::-webkit-scrollbar {
   width: 4px;
 }
