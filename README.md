@@ -108,5 +108,6 @@ Matches the training pipeline exactly:
 - opencv-python ≥ 4.8
 - Pillow ≥ 10.0
 - numpy ≥ 1.24
+- gunicorn ≥ 21.0.0
 
 GPU acceleration is automatically used if `onnxruntime-gpu` is installed.

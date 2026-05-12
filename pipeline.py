@@ -39,7 +39,7 @@ _run_lock = threading.Lock()
 _global_session = None
 
 def get_session():
-    """Get a shared ONNX session and avoid race conditions during initialization."""
+    #Get a shared ONNX session and avoid race conditions during initialization.
     global _global_session
     if _global_session is None:
         with _session_lock:
@@ -84,7 +84,7 @@ def _sharpen(arr: np.ndarray) -> np.ndarray:
 def preprocess(pil_img: Image.Image):
     """
     Full preprocessing pipeline matching training:
-      Auto-Orient → Contrast Stretch → CLAHE → Sharpen → Fit-Within 640×640
+      Auto-Orient → Contrast Stretch → CLAHE → Sharpen → Fit-Within 640X640
 
     Returns:
         tensor        (1, 3, 640, 640) float32 — model input
@@ -92,7 +92,7 @@ def preprocess(pil_img: Image.Image):
         original_rgb  np.ndarray — unmodified RGB image for annotation
     """
     pil_img      = ImageOps.exif_transpose(pil_img).convert("RGB")
-    original_rgb = np.array(pil_img)          # keep for drawing
+    original_rgb = np.array(pil_img)
 
     arr = _contrast_stretch(original_rgb)
     arr = _apply_clahe(arr)
@@ -151,7 +151,7 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
     Run ONNX session and post-process YOLOv8 output with optional dynamic thresholds.
 
     YOLOv8 ONNX output: (1, 4+num_classes, 8400)
-    Rows 0-3 → cx, cy, w, h  (in 640×640 pixel space)
+    Rows 0-3 → cx, cy, w, h  (in 640X640 pixel space)
     Rows 4+  → class scores
 
     Returns list of dicts:
@@ -165,9 +165,9 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
     input_name = session.get_inputs()[0].name
     with _run_lock:
         raw = session.run(None, {input_name: tensor})[0]  # (1, 6, 8400)
-    preds = raw[0].T                                     # (8400, 6)
+    preds = raw[0].T                                      # (8400, 6)
 
-    class_scores = preds[:, 4:]                          # (8400, num_classes)
+    class_scores = preds[:, 4:]                           # (8400, num_classes)
     conf         = class_scores.max(axis=1)
     class_ids    = class_scores.argmax(axis=1)
 
@@ -179,7 +179,7 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
     conf_f   = conf[mask]
     cids_f   = class_ids[mask]
 
-    # cx,cy,w,h → x1,y1,x2,y2  (model 640×640 space)
+    # cx,cy,w,h → x1,y1,x2,y2  (model 640X640 space)
     cx, cy = preds_f[:, 0], preds_f[:, 1]
     bw, bh = preds_f[:, 2], preds_f[:, 3]
     boxes_model = np.stack([cx - bw / 2, cy - bh / 2,
@@ -197,7 +197,7 @@ def run_inference(tensor: np.ndarray, params: dict, conf_thresh: float = None, i
         for k in keep:
             orig_i = idx[k]
             bm     = boxes_model[orig_i]
-            # Map from 640×640 model space → original image coordinates
+            
             ox1 = int(max(0,  (bm[0] - pl) / scale))
             oy1 = int(max(0,  (bm[1] - pt) / scale))
             ox2 = int(min(ow, (bm[2] - pl) / scale))

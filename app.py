@@ -5,7 +5,7 @@ from PIL import Image
 
 from pipeline import CLASSES, BILL_VALUES, preprocess, run_inference, annotate_image, img_to_base64_jpeg
 
-# ─── Flask App ─────────────────────────────────────────────────────────────────
+#Flask App
 app = Flask(__name__)
 
 
@@ -36,7 +36,7 @@ def detect():
         pil_img   = Image.open(io.BytesIO(img_bytes))
         print(f"Image loaded: {pil_img.size}")
 
-        # Get dynamic thresholds from client (or use defaults)
+        # Get dynamic thresholds from client
         conf_threshold = float(payload.get("confidence", 0.15))
         iou_threshold = float(payload.get("iou", 0.5))
         print(f"Using thresholds: conf={conf_threshold}, iou={iou_threshold}")
@@ -74,7 +74,6 @@ def detect():
         return jsonify({"error": str(exc)}), 500
 
 
-# ─── Entry Point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import os
 
